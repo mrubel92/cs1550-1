@@ -324,3 +324,6 @@ ENTRY(sys_call_table)
 	.long sys_timerfd
 	.long sys_eventfd
 	.long sys_fallocate
+	//My syscalls
+	.long sys_cs1550_send_msg /*325*/
+	.long sys_cs1550_get_msg

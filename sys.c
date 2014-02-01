@@ -2300,6 +2300,18 @@ asmlinkage long sys_getcpu(unsigned __user *cpup, unsigned __user *nodep,
 	return err ? -EFAULT : 0;
 }
 
+asmlinkage long sys_cs1550_send_msg(const char __user *to, const char __user *msg,
+									const char __user *from)
+{
+	//to implement
+}
+
+asmlinkage long sys_cs1550_get_msg(const char __user *to, const char __user *msg,
+							size_t msg_len, const char __user *from, size_t from_len)
+{
+	//to implement
+}
+
 char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
 
 static void argv_cleanup(char **argv, char **envp)
