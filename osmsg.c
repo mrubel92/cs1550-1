@@ -8,13 +8,16 @@ int main(int argc, char ** argv)
 	char recipient[20];
 	char from[20];
 	char msg[100];
-	char user[20] = "mjr95";//should probably try and do something else with this
+	char user[20];
 	int status;
 	size_t msg_len;
 	size_t from_len;
 	
 	strcpy(command,argv[1]);
+	strcpy(user,getenv("USER"));
+
 	//if first arg is not an -s (send) or -r (read), then return as its invalid
+	
 	if((strncmp(command,"-s",2) != 0) && (strncmp(command,"-r",2) != 0))
 	{
 		printf("invalid command \n");
@@ -38,13 +41,18 @@ int main(int argc, char ** argv)
 	}
 	else //checking messages
 	{
-		//printf("reading messages\n");
+		printf("reading messages...\n");
+		msg_len = 100;
+		from_len = 20;
 		do
 		{
-			status = sys_cs1550_get_msg(&user, &msg, &msg_len, &from, &from_len);
+			status = sys_cs1550_get_msg(&user, &msg, msg_len, &from, from_len);
 			printf("%s said: %s \n", from, msg);
-		} while(status = 1);
+		} while(status == 1);
+		if(status < 0)
+		{
+			printf("There was an error \n");
+		}
 	}
-
 	return 0;
 }

@@ -72,6 +72,9 @@
  * this is where the system-wide overflow UID and GID are defined, for
  * architectures that now have 32-bit UID/GID but didn't in the past
  */
+ 
+//initialize message_count so we can keep track of how long linked list is
+int message_count = 0;
 
 int overflowuid = DEFAULT_OVERFLOWUID;
 int overflowgid = DEFAULT_OVERFLOWGID;
@@ -2300,16 +2303,95 @@ asmlinkage long sys_getcpu(unsigned __user *cpup, unsigned __user *nodep,
 	return err ? -EFAULT : 0;
 }
 
+struct message_chain{
+	char to[20];
+	char from[20];
+	char msg[100];
+	char flag;
+	struct message_chain *next;
+}
+
+struct message_chain *head;
+
 asmlinkage long sys_cs1550_send_msg(const char __user *to, const char __user *msg,
 									const char __user *from)
 {
-	//to implement
+	//If we do not have any messages yet, create one for the pointer
+	if(message_count == 0)
+	{
+		head = kmalloc(sizeof(message_chain));
+		if (!head)
+			return -1;
+		strcpy(head.to, to);
+		strcpy(head.from, from);
+		strcpy(head.msg, msg);
+		head.flag = 'n';
+	}
+	else
+	{
+		struct message_chain *new;
+		struct message_chain *current;
+		if(message_count == 1)
+		{
+			new = kmalloc(sizeof(message_chain));
+			if(!new)
+				return -1;
+			head.next = *new;
+			strcpy(new.to, to);
+			strcpy(new.from, from);
+			strcpy(new.msg, msg);
+			new.flag = 'n';
+		}
+		else
+		{
+			current = head;
+			for(int i = 0;i<message_count-1;i++)
+			{
+				current = current.next;
+			}
+			new = kmalloc(sizeof(message_chain));
+			if(!new)
+				return -1;
+			strcpy(new.to, to);
+			strcpy(new.from, from);
+			strcpy(new.msg, msg);
+			new.flag = 'n';
+			
+			current.next = *new;
+		}
+	}
+	message_count++;
+	return 0;
+		
 }
 
 asmlinkage long sys_cs1550_get_msg(const char __user *to, const char __user *msg,
 							size_t msg_len, const char __user *from, size_t from_len)
 {
-	//to implement
+	struct message_chain *current;
+	current = head;
+	for(int i = 0; i<message_count; i++)
+	{
+		if((strcmp(to,current.to)==0) && current.flag = 'n')
+		{
+			strncpy(from, current.from,from_len);
+			strncpy(msg, current.msg, msg_len);
+			current.flag = 'y';
+			//check to see if there are any more messages...
+			
+			for(int j=i; j<message_count; j++)
+			{
+				current = current.next;
+				if((strcmp(to,current.to)==0) && current.flag = 'n')
+				{
+					return 1;
+				}
+			}
+			return 0;
+		}
+		current = current.next;
+	}
+	return 0;
 }
 
 char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
